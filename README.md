@@ -1,3 +1,4 @@
+# This is a custom readme
 # Codespaces Base Starter
 
 This project is a generic starter for developers to use in Codespaces that includes basic system tools and extensions.
