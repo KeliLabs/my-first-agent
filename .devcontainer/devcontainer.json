@@ -4,7 +4,6 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
-    
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "moby": true,
@@ -30,9 +29,16 @@
         "ghcr.io/devcontainers/features/python:1": {
             "version": "3.12",
             "installTools": true
+        },
+        "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+            "version": "latest",
+            "helm": "latest",
+            "minikube": "none"
+        },
+        "ghcr.io/devcontainers/features/terraform:1": {
+            "version": "latest"
         }
     },
-    
     "customizations": {
         "vscode": {
             "extensions": [
@@ -43,7 +49,6 @@
                 "ms-vsliveshare.vsliveshare",
                 "vscode-icons-team.vscode-icons",
                 "visualstudioexptteam.vscodeintellicode",
-                
                 // Essential productivity extensions
                 "ms-vscode.vscode-json",
                 "redhat.vscode-yaml",
@@ -53,18 +58,15 @@
                 "ms-vscode.vscode-typescript-next",
                 "esbenp.prettier-vscode",
                 "dbaeumer.vscode-eslint",
-                
                 // Git and version control
                 "eamodio.gitlens",
                 "github.copilot",
                 "github.copilot-chat",
-                
                 // Development tools
                 "humao.rest-client",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "hashicorp.terraform",
                 "ms-vscode.live-server",
-                
                 // Code quality and formatting
                 "streetsidesoftware.code-spell-checker",
                 "davidanson.vscode-markdownlint",
@@ -91,9 +93,7 @@
             }
         }
     },
-    
-    "postCreateCommand": "bash .devcontainer/post-create.sh",
-    
+    "postCreateCommand": ".devcontainer/scripts/post-create.sh",
     "remoteUser": "vscode",
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"

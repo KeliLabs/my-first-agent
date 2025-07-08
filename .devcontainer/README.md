@@ -123,6 +123,30 @@ Edit `.devcontainer/post-create.sh` for commands that should run after container
 
 ## Troubleshooting
 
+### kubectl/helm/terraform Commands Not Found
+If you're getting "command not found" errors for these tools:
+
+1. **Rebuild the container** - These tools are installed via devcontainer features:
+   ```
+   Ctrl+Shift+P → "Dev Containers: Rebuild Container"
+   ```
+
+2. **Check if features were installed**:
+   ```bash
+   # These should show version info
+   kubectl version --client
+   helm version --short
+   terraform --version
+   ```
+
+3. **Manual verification**:
+   ```bash
+   # Check if binaries exist
+   which kubectl
+   which helm
+   which terraform
+   ```
+
 ### Docker Commands Fail
 Ensure Docker-in-Docker is properly initialized:
 ```bash
