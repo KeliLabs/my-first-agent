@@ -1,5 +1,5 @@
 {
-    "name": "Development Container",
+    "name": "LangChain Development Container",
     "build": {
         "dockerfile": "Dockerfile",
         "context": ".."
@@ -61,12 +61,21 @@
                 // Git and version control
                 "eamodio.gitlens",
                 "github.copilot",
-                "github.copilot-chat",
+                "github.copilot-chat@prerelease",
                 // Development tools
                 "humao.rest-client",
                 "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "hashicorp.terraform",
                 "ms-vscode.live-server",
+                // LangChain and AI development extensions
+                "ms-python.jupyter",
+                "ms-python.vscode-pylance",
+                "ms-python.flake8",
+                "ms-python.mypy-type-checker",
+                "ms-dotnettools.dotnet-interactive-vscode",
+                "ms-vscode.vscode-json",
+                "bradlc.vscode-tailwindcss",
+                "ms-vscode.vscode-typescript-next",
                 // Code quality and formatting
                 "streetsidesoftware.code-spell-checker",
                 "davidanson.vscode-markdownlint",
@@ -89,7 +98,14 @@
                 "git.enableSmartCommit": true,
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "eslint.format.enable": true,
-                "prettier.requireConfig": true
+                "prettier.requireConfig": true,
+                // LangChain and AI development settings
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.formatting.provider": "black",
+                "python.analysis.typeCheckingMode": "basic",
+                "jupyter.askForKernelRestart": false,
+                "jupyter.interactiveWindowMode": "perFile"
             }
         }
     },
@@ -97,5 +113,10 @@
     "remoteUser": "vscode",
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
-    ]
+    ],
+    "containerEnv": {
+        "LANGCHAIN_TRACING_V2": "true",
+        "LANGCHAIN_PROJECT": "langchain-hello-world",
+        "PYTHONPATH": "/workspaces/langchain-hello-world:${PYTHONPATH}"
+    }
 }
