@@ -11,20 +11,30 @@
     "type": "git",
     "url": "git+https://github.com/KeliLabs/langchain-hello-world.git"
   },
-  "keywords": ["langchain", "ai", "llm", "chatbot"],
+  "keywords": [
+    "langchain",
+    "ai",
+    "llm",
+    "chatbot",
+    "openai",
+    "google",
+    "gemini"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/KeliLabs/langchain-hello-world/issues"
   },
   "homepage": "https://github.com/KeliLabs/langchain-hello-world#readme",
-  "description": "A LangChain hello world application",
+  "description": "A LangChain hello world application with support for OpenAI GPT and Google Gemini",
   "dependencies": {
-    "express": "^5.1.0",
-    "langchain": "^0.2.0",
-    "@langchain/openai": "^0.2.0",
     "@langchain/community": "^0.2.0",
-    "dotenv": "^16.0.0"
+    "@langchain/core": "^0.3.62",
+    "@langchain/google-genai": "^0.2.14",
+    "@langchain/openai": "^0.2.0",
+    "dotenv": "^16.0.0",
+    "express": "^5.1.0",
+    "langchain": "^0.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
