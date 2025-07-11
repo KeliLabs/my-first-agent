@@ -1,8 +1,15 @@
 const express = require('express');
-const { ChatOpenAI } = require('@langchain/openai');
-// const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+// const { ChatOpenAI } = require('@langchain/openai');
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
 const { StringOutputParser } = require('@langchain/core/output_parsers');
+const { SearchApi } = require('@langchain/community/tools/searchapi');
+const { AgentExecutor } = require("langchain/agents");
+const { ChatPromptTemplate } = require('@langchain/core/prompts');
+const { RunnableSequence } = require("@langchain/core/runnables");
+const { AgentFinish, AgentAction } = require("@langchain/core/agents");
+const { BaseMessageChunk } = require("@langchain/core/messages");
+
 require('dotenv').config();
 
 const app = express();
@@ -13,121 +20,33 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Initialize LangChain models
-const openaiLLM = new ChatOpenAI({
+const llm = new ChatGoogleGenerativeAI({
   temperature: 0.7,
-  apiKey: process.env.OPENAI_API_KEY,
-  modelName: "gpt-3.5-turbo",
+  apiKey: process.env.GOOGLE_API_KEY,
+  model: "gemini-2.0-flash",
 });
-
-// Initialize Gemini using dedicated ChatGoogleGenerativeAI
-let geminiLLM;
-if (process.env.GOOGLE_API_KEY) {
-  // geminiLLM = new ChatGoogleGenerativeAI({
-  //   temperature: 0.7,
-  //   apiKey: process.env.GOOGLE_API_KEY,
-  //   model: "gemini-1.5-flash",
-  // });
-  geminiLLM = new ChatOpenAI({
-    temperature: 0.7,
-    apiKey: process.env.GOOGLE_API_KEY,
-    model: "gemini-1.5-flash",
-  });
-}
-
-// Default to OpenAI, but allow switching
-const getLLM = (provider = 'openai') => {
-  switch (provider) {
-    case 'gemini':
-      if (!geminiLLM) {
-        throw new Error('Google API key not configured. Please set GOOGLE_API_KEY in your .env file.');
-      }
-      return geminiLLM;
-    case 'openai':
-    default:
-      return openaiLLM;
-  }
+const tools = [
+  new SearchApi(process.env.SEARCHAPI_API_KEY, {
+    engine: "google_news",
+  }),
+];
+// Default to Google Gemini, but allow switching
+const getLLM = (provider = 'gemini') => {
+      return llm;
 };
 
 const parser = new StringOutputParser();
 
 app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>LangChain Hello World</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .container { max-width: 800px; margin: 0 auto; }
-            textarea { width: 100%; height: 100px; margin: 10px 0; }
-            button { padding: 10px 20px; background: #007cba; color: white; border: none; cursor: pointer; }
-            button:hover { background: #005a8b; }
-            .response { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 5px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🦜 LangChain Hello World</h1>
-            <p>This is a simple LangChain application running in a GitHub Codespace!</p>
-            
-            <h2>Chat with AI</h2>
-            <form id="chatForm">
-                <label for="provider">Choose AI Provider:</label>
-                <select id="provider" style="margin: 10px 0; padding: 5px;">
-                    <option value="openai">OpenAI GPT</option>
-                    <option value="gemini">Google Gemini</option>
-                </select><br>
-                <textarea id="message" placeholder="Type your message here..."></textarea><br>
-                <button type="submit">Send Message</button>
-            </form>
-            
-            <div id="response" class="response" style="display: none;"></div>
-        </div>
-
-        <script>
-            document.getElementById('chatForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const message = document.getElementById('message').value;
-                const provider = document.getElementById('provider').value;
-                const responseDiv = document.getElementById('response');
-                
-                responseDiv.style.display = 'block';
-                responseDiv.innerHTML = 'Thinking... (using ' + (provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini') + ')';
-                
-                try {
-                    const response = await fetch('/chat', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ message, provider })
-                    });
-                    
-                    const data = await response.json();
-                    const providerName = provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini';
-                    responseDiv.innerHTML = '<strong>' + providerName + ':</strong> ' + data.response;
-                } catch (error) {
-                    responseDiv.innerHTML = 'Error: ' + error.message;
-                }
-            });
-        </script>
-    </body>
-    </html>
-  `);
+  res.sendFile('index.html', { root: './public' });
 });
 
 app.post('/chat', async (req, res) => {
   try {
-    const { message, provider = 'openai' } = req.body;
-    
-    // Check API keys based on provider
-    if (provider === 'openai' && !process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ 
-        error: 'OpenAI API key not configured. Please set OPENAI_API_KEY in your .env file.' 
-      });
-    }
-    
+    const { message, provider = 'gemini' } = req.body;
     if (provider === 'gemini' && !process.env.GOOGLE_API_KEY) {
-      return res.status(500).json({ 
-        error: 'Google API key not configured. Please set GOOGLE_API_KEY in your .env file.' 
+      return res.status(500).json({
+        error: 'Google API key not configured. Please set GOOGLE_API_KEY in your .env file.'
       });
     }
 
@@ -136,10 +55,39 @@ app.post('/chat', async (req, res) => {
       new SystemMessage("You are a helpful assistant. Keep your responses concise and friendly."),
       new HumanMessage(message)
     ];
-
     const response = await llm.invoke(messages);
-    const parsed = await parser.invoke(response);
-    
+    console.log(response)
+    //
+    const { SerpAPI } = require("@langchain/community/tools/serpapi");
+    const { RunnableLambda } = require("@langchain/core/runnables");
+    const tool = new SerpAPI(); 
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", "You are a helpful assistant."],
+      ["placeholder", "{messages}"],
+    ]);
+    const llmWithTools = llm.bindTools([tool]);
+    const chain = prompt.pipe(llmWithTools);
+    const toolChain = RunnableLambda.from(async (userInput, config) => {
+      const humanMessage = new HumanMessage(userInput);
+      const aiMsg = await chain.invoke(
+        {
+          messages: [new HumanMessage(userInput)],
+        },
+        config
+      );
+      const toolMsgs = await tool.batch(aiMsg.tool_calls, config);
+      return chain.invoke(
+        {
+          messages: [humanMessage, aiMsg, ...toolMsgs],
+        },
+        config
+      );
+    });
+
+    const toolChainResult = await toolChain.invoke(message);
+    console.log("toolChainResult",toolChainResult)
+    const parsed = await parser.invoke(toolChainResult.content);
+    console.log('parser:', parsed);
     res.json({ response: parsed });
   } catch (error) {
     console.error('Error:', error);
@@ -154,6 +102,5 @@ app.post('/chat', async (req, res) => {
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 LangChain Hello World app listening at http://localhost:${port}`);
   console.log(`📝 Make sure to set your API keys in the .env file:`);
-  console.log(`   - OPENAI_API_KEY for OpenAI GPT`);
   console.log(`   - GOOGLE_API_KEY for Google Gemini`);
 });

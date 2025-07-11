@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LangChain Hello World</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🦜 LangChain Hello World</h1>
+        <p>This is a simple LangChain application running in a GitHub Codespace!</p>
+        <h2>Chat with AI</h2>
+        <form id="chatForm">
+            <label for="provider">Choose AI Provider:</label>
+            <select id="provider" style="margin: 10px 0; padding: 5px;">
+                <!-- <option value="openai">OpenAI GPT</option> -->
+                <option value="gemini">Google Gemini</option>
+            </select><br>
+            <textarea id="message" placeholder="Type your message here..."></textarea><br>
+            <button type="submit">Send Message</button>
+        </form>
+        <div id="response" class="response" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
