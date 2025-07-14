@@ -51,44 +51,86 @@ app.post('/chat', async (req, res) => {
     }
 
     const llm = getLLM(provider);
-    const messages = [
-      new SystemMessage("You are a helpful assistant. Keep your responses concise and friendly."),
+    
+    // First, check if the user's message requires a search
+    const searchIntentMessages = [
+      new SystemMessage(`Analyze if this message requires searching for current information, news, or real-time data. 
+      Respond with only "true" if search is needed, "false" if it's a general conversation that can be answered with existing knowledge.
+      
+      Examples that need search: "latest news about AI", "current weather", "recent events", "what happened today"
+      Examples that don't need search: "hello", "how are you", "explain quantum physics", "write a poem"`),
       new HumanMessage(message)
     ];
-    const response = await llm.invoke(messages);
-    console.log(response)
-    //
-    const { SerpAPI } = require("@langchain/community/tools/serpapi");
-    const { RunnableLambda } = require("@langchain/core/runnables");
-    const tool = new SerpAPI(); 
-    const prompt = ChatPromptTemplate.fromMessages([
-      ["system", "You are a helpful assistant."],
-      ["placeholder", "{messages}"],
-    ]);
-    const llmWithTools = llm.bindTools([tool]);
-    const chain = prompt.pipe(llmWithTools);
-    const toolChain = RunnableLambda.from(async (userInput, config) => {
-      const humanMessage = new HumanMessage(userInput);
-      const aiMsg = await chain.invoke(
-        {
-          messages: [new HumanMessage(userInput)],
-        },
-        config
-      );
-      const toolMsgs = await tool.batch(aiMsg.tool_calls, config);
-      return chain.invoke(
-        {
-          messages: [humanMessage, aiMsg, ...toolMsgs],
-        },
-        config
-      );
-    });
+    
+    const searchIntentResponse = await llm.invoke(searchIntentMessages);
+    const needsSearch = searchIntentResponse.content.toLowerCase().includes('true');
+    
+    console.log(`User message: "${message}"`);
+    console.log(`Needs search: ${needsSearch}`);
+    
+    if (needsSearch) {
+      // Use search tool for queries that need current information
+      console.log('🔍 Using search tool for this query...');
+      
+      const { SerpAPI } = require("@langchain/community/tools/serpapi");
+      const { RunnableLambda } = require("@langchain/core/runnables");
+      const tool = new SerpAPI(); 
+      const prompt = ChatPromptTemplate.fromMessages([
+        ["system", "You are a helpful assistant with access to search tools. Use the search results to provide accurate, up-to-date information."],
+        ["placeholder", "{messages}"],
+      ]);
+      
+      const llmWithTools = llm.bindTools([tool]);
+      const chain = prompt.pipe(llmWithTools);
+      
+      const toolChain = RunnableLambda.from(async (userInput, config) => {
+        const humanMessage = new HumanMessage(userInput);
+        const aiMsg = await chain.invoke(
+          {
+            messages: [new HumanMessage(userInput)],
+          },
+          config
+        );
+        
+        if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
+          console.log('🔧 Tool calls detected:', aiMsg.tool_calls.length);
+          const toolMsgs = await tool.batch(aiMsg.tool_calls, config);
+          console.log('🔧 Tool messages:', toolMsgs);
+          
+          return chain.invoke(
+            {
+              messages: [humanMessage, aiMsg, ...toolMsgs],
+            },
+            config
+          );
+        } else {
+          // No tool calls needed, return the AI message directly
+          return aiMsg;
+        }
+      });
 
-    const toolChainResult = await toolChain.invoke(message);
-    console.log("toolChainResult",toolChainResult)
-    const parsed = await parser.invoke(toolChainResult.content);
-    console.log('parser:', parsed);
-    res.json({ response: parsed });
+      const toolChainResult = await toolChain.invoke(message);
+      console.log("🔍 Search result:", toolChainResult.content);
+      
+      const parsed = await parser.invoke(toolChainResult.content);
+      res.json({ response: parsed });
+      
+    } else {
+      // Use regular LLM for general conversation
+      console.log('💬 Using regular chat (no search needed)...');
+      
+      const messages = [
+        new SystemMessage("You are a helpful assistant. Keep your responses concise and friendly."),
+        new HumanMessage(message)
+      ];
+      
+      const response = await llm.invoke(messages);
+      console.log("💬 Regular response:", response.content);
+      
+      const parsed = await parser.invoke(response.content);
+      res.json({ response: parsed });
+    }
+    
   } catch (error) {
     console.error('Error:', error);
     if (error.message.includes('Google API key not configured')) {
@@ -98,6 +140,7 @@ app.post('/chat', async (req, res) => {
     }
   }
 });
+
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 LangChain Hello World app listening at http://localhost:${port}`);

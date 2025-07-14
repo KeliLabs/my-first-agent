@@ -57,7 +57,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function showResponse(providerName, responseText) {
         responseDiv.style.display = 'block';
         responseDiv.className = 'response';
-        responseDiv.innerHTML = `<strong>🤖 ${providerName}:</strong> ${responseText}`;
+        // const htmlContent = marked.parse(responseText);
+        // Parse markdown to HTML
+        let htmlContent;
+        try {
+            htmlContent = marked.parse(responseText);
+        } catch (error) {
+            // Fallback to plain text if markdown parsing fails
+            htmlContent = responseText.replace(/\n/g, '<br>');
+        }
+        responseDiv.innerHTML = `<strong>🤖 ${providerName}:</strong><div class="markdown-content">${htmlContent}</div>`;
+        // responseDiv.innerHTML = `<strong>🤖 ${providerName}:</strong> ${responseText}`;
     }
 
     function showError(errorMessage) {
