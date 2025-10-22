@@ -39,6 +39,18 @@ A simple LangChain application running in a GitHub Codespace, demonstrating basi
 
    Open your browser to `http://localhost:4000`
 
+## MCP Server
+
+The project includes a Model Context Protocol (MCP) server for agent interoperability.
+
+**Quick start:**
+
+```bash
+npm run mcp
+```
+
+For detailed setup and usage instructions, see [MCP_QUICKSTART.md](MCP_QUICKSTART.md).
+
 ## Development
 
 ### Node.js Development
