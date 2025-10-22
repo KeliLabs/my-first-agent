@@ -10,6 +10,7 @@ A simple LangChain application running in a GitHub Codespace, demonstrating basi
 - 🐍 Python support for advanced LangChain features
 - 📊 Jupyter notebook support
 - 🔧 Pre-configured dev container
+- 🤖 MCP (Model Context Protocol) server for agent interoperability
 
 ## Getting Started
 
@@ -45,6 +46,13 @@ A simple LangChain application running in a GitHub Codespace, demonstrating basi
 - `npm run dev` - Start with nodemon for auto-reload
 - `npm start` - Start the production server
 
+### MCP Server
+
+- `npm run mcp` - Start the MCP server for agent interoperability
+- `npm run mcp:dev` - Start MCP server with auto-reload
+
+The MCP server exposes agent information and capabilities following the Model Context Protocol. See [src/mcp-server/README.md](src/mcp-server/README.md) for more details.
+
 ### Python Development
 
 - Use the integrated Jupyter notebook support
@@ -62,6 +70,10 @@ A simple LangChain application running in a GitHub Codespace, demonstrating basi
 
 ```text
 ├── .devcontainer/          # Dev container configuration
+├── src/
+│   └── mcp-server/        # MCP server for agent interoperability
+│       ├── index.js       # MCP server implementation
+│       └── README.md      # MCP server documentation
 ├── server.js               # Main Express server
 ├── package.json           # Node.js dependencies
 ├── requirements.txt       # Python dependencies
