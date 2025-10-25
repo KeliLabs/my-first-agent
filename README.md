@@ -117,6 +117,8 @@ See [src/mcp-server/README.md](src/mcp-server/README.md) for more details.
 ├── package.json           # Node.js dependencies
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Environment variables template
+├── DEPLOYMENT.md          # Heroku deployment guide
+├── NANDA_REGISTRATION.md  # NANDA registry registration checklist
 └── README.md             # This file
 ```
 
@@ -232,6 +234,8 @@ After deployment, validate that:
 ## NANDA Registry Registration
 
 The NANDA registry (https://nanda.media.mit.edu) is a centralized registry for AI agents that enables agentic web discovery and interoperability. Registering your MCP agent makes it discoverable by other AI agents and tools in the ecosystem.
+
+> **📋 Quick Start**: Use our [NANDA Registration Checklist](NANDA_REGISTRATION.md) for a step-by-step guided process.
 
 ### Prerequisites
 
@@ -380,6 +384,7 @@ To keep your agent registration current:
 
 ### Additional Resources
 
+- **NANDA Registration Checklist**: [NANDA_REGISTRATION.md](NANDA_REGISTRATION.md) - Complete step-by-step registration guide
 - **NANDA Registry**: https://nanda.media.mit.edu
 - **MCP Protocol Documentation**: https://modelcontextprotocol.io/
 - **Agent Registry Best Practices**: Ensure 99.9% uptime for your MCP endpoint
