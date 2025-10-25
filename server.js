@@ -76,8 +76,27 @@ app.get('/mcp', (req, res) => {
     },
     company: {
       name: 'KeliLabs',
-      repository: 'https://github.com/KeliLabs/my-first-agent',
-      contact: 'contact@kelilabs.com'
+      overview: 'KeliLabs is dedicated to building innovative AI agents and tools that enable agentic interoperability and enhance the AI ecosystem.',
+      focus_areas: [
+        'AI Agent Development',
+        'LangChain Integration',
+        'Model Context Protocol (MCP) Implementation',
+        'Multi-Provider AI Support',
+        'Conversational AI',
+        'Agent Interoperability'
+      ],
+      contact: {
+        github: 'https://github.com/KeliLabs',
+        repository: 'https://github.com/KeliLabs/my-first-agent',
+        email: 'contact@kelilabs.com'
+      },
+      technology_stack: {
+        frameworks: ['LangChain', 'Express.js'],
+        languages: ['JavaScript', 'Python'],
+        ai_providers: ['OpenAI', 'Google Gemini'],
+        protocols: ['Model Context Protocol (MCP)']
+      },
+      mission: 'To democratize AI agent development and foster interoperability across the AI agent ecosystem'
     },
     endpoints: {
       chat: '/chat',
