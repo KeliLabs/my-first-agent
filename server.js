@@ -14,6 +14,8 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 4000;
+console.log("Google API Key:", process.env.GOOGLE_API_KEY);
+
 
 // Middleware
 app.use(express.json());
