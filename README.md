@@ -89,9 +89,15 @@ See [src/mcp-server/README.md](src/mcp-server/README.md) for more details.
 
 ## Environment Variables
 
-- `OPENAI_API_KEY` - Your OpenAI API key
+**Required:**
+- `GOOGLE_API_KEY` - Your Google Gemini API key (required for chat functionality)
+
+**Optional:**
+- `OPENAI_API_KEY` - Your OpenAI API key (for OpenAI provider support)
+- `SERPAPI_API_KEY` - SerpAPI key for search functionality
+- `SEARCHAPI_API_KEY` - SearchAPI key for news search
 - `LANGCHAIN_TRACING_V2` - Enable LangChain tracing
-- `LANGCHAIN_API_KEY` - Your LangChain API key (optional)
+- `LANGCHAIN_API_KEY` - Your LangChain API key
 - `LANGCHAIN_PROJECT` - Project name for tracing
 
 ## Project Structure
@@ -122,7 +128,7 @@ This project includes examples for:
 
 ### Heroku Deployment
 
-This application is configured for deployment on Heroku.
+This application is configured for deployment on Heroku. For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 #### Prerequisites
 
