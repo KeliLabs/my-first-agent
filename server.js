@@ -25,11 +25,12 @@ const llm = new ChatGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
   model: "gemini-2.0-flash",
 });
-const tools = [
-  new SearchApi(process.env.SEARCHAPI_API_KEY, {
-    engine: "google_news",
-  }),
-];
+// Initialize tools only if API key is available
+const tools = process.env.SEARCHAPI_API_KEY 
+  ? [new SearchApi(process.env.SEARCHAPI_API_KEY, {
+      engine: "google_news",
+    })]
+  : [];
 // Default to Google Gemini, but allow switching
 const getLLM = (provider = 'gemini') => {
       return llm;
@@ -39,6 +40,49 @@ const parser = new StringOutputParser();
 
 app.get('/', (req, res) => {
   res.sendFile('index.html', { root: './public' });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    providers: {
+      gemini: !!process.env.GOOGLE_API_KEY,
+      openai: !!process.env.OPENAI_API_KEY,
+    }
+  });
+});
+
+// MCP endpoint for protocol information
+app.get('/mcp', (req, res) => {
+  res.json({
+    name: 'my-first-agent-mcp-server',
+    version: '1.0.0',
+    protocol: 'Model Context Protocol (MCP)',
+    agent: {
+      name: 'my-first-agent',
+      version: '1.0.0',
+      description: 'A LangChain-powered AI agent with OpenAI and Google Gemini support',
+      capabilities: ['chat', 'search', 'langchain-integration'],
+      providers: ['openai', 'google-gemini'],
+      type: 'conversational-agent',
+      framework: 'langchain',
+      runtime: 'node.js'
+    },
+    company: {
+      name: 'KeliLabs',
+      repository: 'https://github.com/KeliLabs/my-first-agent',
+      contact: 'contact@kelilabs.com'
+    },
+    endpoints: {
+      chat: '/chat',
+      health: '/health',
+      mcp: '/mcp'
+    }
+  });
 });
 
 app.post('/chat', async (req, res) => {
