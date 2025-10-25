@@ -18,6 +18,30 @@ echo "======================================"
 echo "Testing: $BASE_URL"
 echo ""
 
+# Check for jq availability
+JQ_AVAILABLE=false
+if command -v jq &> /dev/null; then
+    JQ_AVAILABLE=true
+fi
+
+# Function to format JSON output
+format_json() {
+    if [ "$JQ_AVAILABLE" = true ]; then
+        echo "$1" | jq .
+    else
+        echo "$1"
+    fi
+}
+
+# Function to extract JSON field
+extract_json_field() {
+    if [ "$JQ_AVAILABLE" = true ]; then
+        echo "$1" | jq -r "$2"
+    else
+        echo "$1"
+    fi
+}
+
 # Function to test endpoint
 test_endpoint() {
     local endpoint=$1
@@ -61,7 +85,8 @@ fi
 if test_endpoint "/health" "GET" "200"; then
     ((passed++))
     echo "Health check response:"
-    curl -s "$BASE_URL/health" | jq .
+    health_response=$(curl -s "$BASE_URL/health")
+    format_json "$health_response"
     echo ""
 else
     ((failed++))
@@ -71,7 +96,8 @@ fi
 if test_endpoint "/mcp" "GET" "200"; then
     ((passed++))
     echo "MCP endpoint response (agent info):"
-    curl -s "$BASE_URL/mcp" | jq '.agent'
+    mcp_response=$(curl -s "$BASE_URL/mcp")
+    extract_json_field "$mcp_response" '.agent'
     echo ""
 else
     ((failed++))
@@ -87,7 +113,7 @@ body=$(echo "$response" | sed '$d')
 if [ "$status" == "200" ]; then
     echo -e "${GREEN}✓ PASS${NC} - Chat endpoint working"
     ((passed++))
-elif [ "$status" == "500" ] && echo "$body" | grep -q "API key"; then
+elif [ "$status" == "500" ] && echo "$body" | grep -q "Google API key not configured"; then
     echo -e "${YELLOW}⚠ WARNING${NC} - Chat endpoint requires API key configuration"
     echo "This is expected if GOOGLE_API_KEY is not set"
     ((passed++))
@@ -104,6 +130,11 @@ echo "======================================"
 echo -e "Passed: ${GREEN}$passed${NC}"
 echo -e "Failed: ${RED}$failed${NC}"
 echo ""
+
+if [ "$JQ_AVAILABLE" = false ]; then
+    echo -e "${YELLOW}Note: jq not found. Install jq for formatted JSON output.${NC}"
+    echo ""
+fi
 
 if [ $failed -eq 0 ]; then
     echo -e "${GREEN}✓ All tests passed!${NC}"
