@@ -118,6 +118,106 @@ This project includes examples for:
 - Error handling
 - Response parsing
 
+## Deployment
+
+### Heroku Deployment
+
+This application is configured for deployment on Heroku.
+
+#### Prerequisites
+
+- [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed
+- A Heroku account
+- Google Gemini API key (required)
+
+#### Quick Deploy
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+Click the button above to deploy directly to Heroku. You will be prompted to enter your environment variables.
+
+#### Manual Deployment
+
+1. **Create a Heroku app:**
+
+   ```bash
+   heroku create your-app-name
+   ```
+
+2. **Set environment variables:**
+
+   ```bash
+   heroku config:set GOOGLE_API_KEY=your_google_api_key
+   heroku config:set NODE_ENV=production
+   ```
+
+   Optional environment variables:
+   ```bash
+   heroku config:set OPENAI_API_KEY=your_openai_api_key
+   heroku config:set SERPAPI_API_KEY=your_serpapi_key
+   heroku config:set SEARCHAPI_API_KEY=your_searchapi_key
+   heroku config:set LANGSMITH_API_KEY=your_langsmith_key
+   heroku config:set LANGSMITH_PROJECT=your_project_name
+   ```
+
+3. **Deploy the application:**
+
+   ```bash
+   git push heroku main
+   ```
+
+4. **Open the application:**
+
+   ```bash
+   heroku open
+   ```
+
+#### Public Endpoints
+
+Once deployed, your application will have the following publicly accessible endpoints:
+
+- **`/`** - Web interface for chatting with the AI agent
+- **`/chat`** - POST endpoint for programmatic chat interactions
+  - Request body: `{ "message": "your message", "provider": "gemini" }`
+  - Response: `{ "response": "AI response" }`
+- **`/health`** - Health check endpoint
+  - Returns server status, uptime, and configured providers
+- **`/mcp`** - MCP (Model Context Protocol) information endpoint
+  - Returns agent metadata, capabilities, and available endpoints
+
+#### Example Usage
+
+**Health Check:**
+```bash
+curl https://your-app-url.herokuapp.com/health
+```
+
+**MCP Information:**
+```bash
+curl https://your-app-url.herokuapp.com/mcp
+```
+
+**Chat API:**
+```bash
+curl -X POST https://your-app-url.herokuapp.com/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, how are you?"}'
+```
+
+#### Validation
+
+After deployment, validate that:
+1. The health check endpoint returns `{ "status": "healthy" }`
+2. The MCP endpoint returns agent and company information
+3. The chat endpoint responds with AI-generated messages
+4. The web interface is accessible and functional
+
+#### Troubleshooting
+
+- **500 Error on `/chat`**: Ensure `GOOGLE_API_KEY` is set in your Heroku config
+- **Application Error**: Check logs with `heroku logs --tail`
+- **Build Failure**: Verify all dependencies are listed in `package.json`
+
 ## Contributing
 
 1. Fork the repository

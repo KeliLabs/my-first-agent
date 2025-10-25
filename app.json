@@ -1,0 +1,63 @@
+{
+  "name": "my-first-agent",
+  "description": "A LangChain-powered AI agent with OpenAI and Google Gemini support, featuring MCP server for agent interoperability",
+  "repository": "https://github.com/KeliLabs/my-first-agent",
+  "logo": "",
+  "keywords": [
+    "langchain",
+    "ai",
+    "llm",
+    "chatbot",
+    "google",
+    "gemini",
+    "mcp",
+    "model-context-protocol",
+    "agent"
+  ],
+  "env": {
+    "GOOGLE_API_KEY": {
+      "description": "Google Gemini API key for AI model access",
+      "required": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key (optional, for OpenAI provider support)",
+      "required": false
+    },
+    "SERPAPI_API_KEY": {
+      "description": "SerpAPI key for search functionality (optional)",
+      "required": false
+    },
+    "SEARCHAPI_API_KEY": {
+      "description": "SearchAPI key for news search functionality (optional)",
+      "required": false
+    },
+    "LANGSMITH_API_KEY": {
+      "description": "LangSmith API key for tracing (optional)",
+      "required": false
+    },
+    "LANGSMITH_PROJECT": {
+      "description": "LangSmith project name for tracing (optional)",
+      "required": false
+    },
+    "LANGSMITH_TRACING": {
+      "description": "Enable LangSmith tracing (true/false)",
+      "required": false,
+      "value": "false"
+    },
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}
