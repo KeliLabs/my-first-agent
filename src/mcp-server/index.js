@@ -35,6 +35,32 @@ const AGENT_INFO = {
   runtime: 'node.js'
 };
 
+// Company/Organization information
+const COMPANY_INFO = {
+  name: 'KeliLabs',
+  overview: 'KeliLabs is dedicated to building innovative AI agents and tools that enable agentic interoperability and enhance the AI ecosystem.',
+  focus_areas: [
+    'AI Agent Development',
+    'LangChain Integration',
+    'Model Context Protocol (MCP) Implementation',
+    'Multi-Provider AI Support',
+    'Conversational AI',
+    'Agent Interoperability'
+  ],
+  contact: {
+    github: 'https://github.com/KeliLabs',
+    repository: 'https://github.com/KeliLabs/my-first-agent',
+    email: 'contact@kelilabs.com'
+  },
+  technology_stack: {
+    frameworks: ['LangChain', 'Express.js'],
+    languages: ['JavaScript', 'Python'],
+    ai_providers: ['OpenAI', 'Google Gemini'],
+    protocols: ['Model Context Protocol (MCP)']
+  },
+  mission: 'To democratize AI agent development and foster interoperability across the AI agent ecosystem'
+};
+
 // Create MCP server instance
 const server = new Server(
   {
@@ -58,6 +84,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'get_agent_info',
         description: 'Get information about this agent including capabilities and configuration',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_company_info',
+        description: 'Get information about the company/organization behind this agent, including overview, contact details, and focus areas',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_full_profile',
+        description: 'Get complete profile including both agent and company information',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -88,6 +130,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: 'text',
             text: JSON.stringify(AGENT_INFO, null, 2),
+          },
+        ],
+      };
+
+    case 'get_company_info':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(COMPANY_INFO, null, 2),
+          },
+        ],
+      };
+
+    case 'get_full_profile':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              agent: AGENT_INFO,
+              company: COMPANY_INFO,
+              timestamp: new Date().toISOString(),
+            }, null, 2),
           },
         ],
       };
@@ -127,6 +193,18 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         uri: 'agent://config',
         name: 'Agent Configuration',
         description: 'Agent configuration and settings',
+        mimeType: 'application/json',
+      },
+      {
+        uri: 'company://info',
+        name: 'Company Information',
+        description: 'Company/organization details, contact info, and focus areas',
+        mimeType: 'application/json',
+      },
+      {
+        uri: 'company://profile',
+        name: 'Complete Profile',
+        description: 'Combined agent and company information',
         mimeType: 'application/json',
       },
     ],
@@ -172,6 +250,32 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
                   enabled: !!process.env.OPENAI_API_KEY,
                 },
               },
+            }, null, 2),
+          },
+        ],
+      };
+
+    case 'company://info':
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(COMPANY_INFO, null, 2),
+          },
+        ],
+      };
+
+    case 'company://profile':
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify({
+              agent: AGENT_INFO,
+              company: COMPANY_INFO,
+              timestamp: new Date().toISOString(),
             }, null, 2),
           },
         ],

@@ -67,6 +67,27 @@ Returns comprehensive information about the agent including:
 Use the get_agent_info tool to see details about my-first-agent
 ```
 
+### `get_company_info`
+Returns company/organization information including:
+- Company overview
+- Contact details (GitHub, email)
+- Focus areas and specializations
+- Technology stack
+- Mission statement
+
+**Usage:**
+```
+Use the get_company_info tool to get information about KeliLabs
+```
+
+### `get_full_profile`
+Returns complete profile combining both agent and company information.
+
+**Usage:**
+```
+Use the get_full_profile tool to get the complete profile
+```
+
 ### `health_check`
 Checks if the agent is healthy and operational.
 
@@ -84,6 +105,12 @@ Complete agent metadata and capabilities (JSON format)
 
 ### `agent://config`
 Current agent configuration and settings (JSON format)
+
+### `company://info`
+Company/organization details including overview, contact info, focus areas, and technology stack (JSON format)
+
+### `company://profile`
+Complete profile combining agent and company information (JSON format)
 
 ## Development
 
