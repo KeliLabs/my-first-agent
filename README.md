@@ -392,8 +392,9 @@ To keep your agent registration current:
 - **NANDA Registry**: https://nanda.media.mit.edu
 - **MCP Protocol Documentation**: https://modelcontextprotocol.io/
 - **Agent Registry Best Practices**: Ensure 99.9% uptime for your MCP endpoint
-- **MCP Server Code**: See `src/mcp-server/index.js` for implementation details
-- **Agent Metadata**: Modify `src/mcp-server/index.js` to update agent information
+- **HTTP MCP Endpoint**: See `server.js` (lines 62-107) for the `/mcp` endpoint implementation
+- **Standalone MCP Server**: See `src/mcp-server/index.js` for the stdio-based MCP server
+- **Agent Metadata**: Modify `server.js` to update the `/mcp` endpoint information
 
 ## Contributing
 

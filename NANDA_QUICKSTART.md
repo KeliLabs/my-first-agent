@@ -195,7 +195,8 @@ heroku restart
 - 📋 **Full Checklist**: [NANDA_REGISTRATION.md](NANDA_REGISTRATION.md)
 - 🚀 **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
 - 📖 **Main README**: [README.md](README.md)
-- 🔧 **MCP Server Code**: [src/mcp-server/index.js](src/mcp-server/index.js)
+- 🔧 **HTTP MCP Endpoint Code**: [server.js](server.js) (lines 62-107)
+- 🔧 **Standalone MCP Server**: [src/mcp-server/index.js](src/mcp-server/index.js)
 
 ---
 

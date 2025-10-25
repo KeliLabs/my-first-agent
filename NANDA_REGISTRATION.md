@@ -154,8 +154,8 @@ After registration, maintain your agent listing:
 
 When you need to update your registration:
 
-- [ ] Update agent metadata in `src/mcp-server/index.js`
-- [ ] Update company information in `server.js` `/mcp` endpoint
+- [ ] Update agent metadata in `server.js` (the `/mcp` endpoint, lines 62-107)
+- [ ] Optionally update standalone MCP server in `src/mcp-server/index.js`
 - [ ] Deploy changes to Heroku
 - [ ] Verify changes are reflected in `/mcp` endpoint
 - [ ] Update registry listing (if NANDA provides update functionality)
@@ -214,8 +214,8 @@ heroku restart
 ### Issue: Metadata Incorrect or Outdated
 
 **Solutions:**
-- [ ] Update `src/mcp-server/index.js` with new information
-- [ ] Update `server.js` `/mcp` endpoint
+- [ ] Update `server.js` `/mcp` endpoint (lines 62-107) with new information
+- [ ] Optionally update standalone MCP server in `src/mcp-server/index.js`
 - [ ] Commit and deploy changes
 - [ ] Verify changes at `/mcp` endpoint
 - [ ] Update registry listing (if possible)
@@ -225,7 +225,8 @@ heroku restart
 - **NANDA Registry**: https://nanda.media.mit.edu
 - **MCP Protocol Documentation**: https://modelcontextprotocol.io/
 - **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
-- **MCP Server Code**: [src/mcp-server/index.js](src/mcp-server/index.js)
+- **HTTP MCP Endpoint**: [server.js](server.js) (lines 62-107)
+- **Standalone MCP Server**: [src/mcp-server/index.js](src/mcp-server/index.js)
 - **MCP Quick Start**: [MCP_QUICKSTART.md](MCP_QUICKSTART.md)
 
 ## Registration Template
