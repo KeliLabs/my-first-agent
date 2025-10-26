@@ -37,7 +37,9 @@ A simple LangChain application running in a GitHub Codespace, demonstrating basi
 
 4. **Visit the application:**
 
-   Open your browser to `http://localhost:4000`
+   - Web interface: `http://localhost:4000/bot`
+   - API info: `http://localhost:4000/`
+   - Health check: `http://localhost:4000/health`
 
 ## MCP Server
 
@@ -182,25 +184,39 @@ Click the button above to deploy directly to Heroku. You will be prompted to ent
 
 Once deployed, your application will have the following publicly accessible endpoints:
 
-- **`/`** - Web interface for chatting with the AI agent
+- **`/`** - JSON API returning server information and available endpoints
+  - Returns: Server name, version, description, and endpoint list
+- **`/bot`** - Web interface for chatting with the AI agent
+  - Serves the interactive HTML chat interface
 - **`/chat`** - POST endpoint for programmatic chat interactions
   - Request body: `{ "message": "your message", "provider": "gemini" }`
   - Response: `{ "response": "AI response" }`
 - **`/health`** - Health check endpoint
-  - Returns server status, uptime, and configured providers
-- **`/mcp`** - MCP (Model Context Protocol) information endpoint
-  - Returns agent metadata, capabilities, and available endpoints
+  - Returns server status, uptime, version, service name, and configured providers
+- **`/mcp`** - MCP (Model Context Protocol) endpoint
+  - Implements the full MCP protocol over HTTP using Streamable HTTP transport
+  - Supports POST (client-to-server), GET (server-to-client), and DELETE (session termination)
+  - Provides tools: `get_agent_info`, `get_company_info`
 
 #### Example Usage
+
+**Server Info:**
+```bash
+curl https://your-app-url.herokuapp.com/
+```
 
 **Health Check:**
 ```bash
 curl https://your-app-url.herokuapp.com/health
 ```
 
-**MCP Information:**
+**MCP Protocol (requires MCP client):**
 ```bash
-curl https://your-app-url.herokuapp.com/mcp
+# Initialize MCP session
+curl -X POST https://your-app-url.herokuapp.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}},"id":1}'
 ```
 
 **Chat API:**
