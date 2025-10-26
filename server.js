@@ -1,4 +1,5 @@
 const express = require('express');
+const { randomUUID } = require('crypto');
 // const { ChatOpenAI } = require('@langchain/openai');
 const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { HumanMessage, SystemMessage } = require('@langchain/core/messages');
@@ -9,6 +10,9 @@ const { ChatPromptTemplate } = require('@langchain/core/prompts');
 const { RunnableSequence } = require("@langchain/core/runnables");
 const { AgentFinish, AgentAction } = require("@langchain/core/agents");
 const { BaseMessageChunk } = require("@langchain/core/messages");
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
+const { isInitializeRequest } = require('@modelcontextprotocol/sdk/types.js');
 
 require('dotenv').config();
 
@@ -19,7 +23,19 @@ console.log("Google API Key:", process.env.GOOGLE_API_KEY);
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
+
+// Enable CORS for MCP protocol
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Mcp-Session-Id');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
 
 // Initialize LangChain models
 const llm = new ChatGoogleGenerativeAI({
@@ -40,7 +56,94 @@ const getLLM = (provider = 'gemini') => {
 
 const parser = new StringOutputParser();
 
+// Company information for MCP
+const COMPANY_INFO = {
+  name: "KeliLabs",
+  description: "KeliLabs is dedicated to building innovative AI agents and tools that enable agentic interoperability and enhance the AI ecosystem.",
+  focus_areas: [
+    "AI Agent Development",
+    "LangChain Integration",
+    "Model Context Protocol (MCP) Implementation",
+    "Multi-Provider AI Support",
+    "Conversational AI"
+  ],
+  stage: "Development",
+  approach: "Open-source AI agent development with focus on interoperability",
+  website: "https://github.com/KeliLabs",
+  contact: "contact@kelilabs.com"
+};
+
+// Create MCP server instance
+function createMcpServer() {
+  const server = new McpServer({
+    name: "my-first-agent-mcp-server",
+    version: "1.0.0"
+  });
+
+  // Add the agent info tool
+  server.tool(
+    "get_agent_info",
+    "Get information about this agent including capabilities and configuration",
+    {},
+    async () => {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            name: 'my-first-agent',
+            version: '1.0.0',
+            description: 'A LangChain-powered AI agent with OpenAI and Google Gemini support',
+            capabilities: ['chat', 'search', 'langchain-integration'],
+            providers: ['openai', 'google-gemini'],
+            type: 'conversational-agent',
+            framework: 'langchain',
+            runtime: 'node.js'
+          }, null, 2)
+        }]
+      };
+    }
+  );
+
+  // Add company info tool
+  server.tool(
+    "get_company_info",
+    "Get information about the company/organization behind this agent",
+    {},
+    async () => {
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(COMPANY_INFO, null, 2)
+        }]
+      };
+    }
+  );
+
+  return server;
+}
+
+// Map to store transports by session ID
+const transports = {};
+
+// Root endpoint with basic info
 app.get('/', (req, res) => {
+  res.json({
+    name: 'my-first-agent MCP Server',
+    version: '1.0.0',
+    description: 'LangChain-powered AI agent with OpenAI and Google Gemini support',
+    endpoints: {
+      bot: '/bot',
+      chat: '/chat',
+      health: '/health',
+      mcp: '/mcp'
+    },
+    transport: 'HTTP',
+    framework: 'langchain'
+  });
+});
+
+// Bot interface endpoint
+app.get('/bot', (req, res) => {
   res.sendFile('index.html', { root: './public' });
 });
 
@@ -48,6 +151,8 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
+    service: 'my-first-agent',
+    version: '1.0.0',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
@@ -58,33 +163,103 @@ app.get('/health', (req, res) => {
   });
 });
 
-// MCP endpoint for protocol information
-app.get('/mcp', (req, res) => {
-  res.json({
-    name: 'my-first-agent-mcp-server',
-    version: '1.0.0',
-    protocol: 'Model Context Protocol (MCP)',
-    agent: {
-      name: 'my-first-agent',
-      version: '1.0.0',
-      description: 'A LangChain-powered AI agent with OpenAI and Google Gemini support',
-      capabilities: ['chat', 'search', 'langchain-integration'],
-      providers: ['openai', 'google-gemini'],
-      type: 'conversational-agent',
-      framework: 'langchain',
-      runtime: 'node.js'
-    },
-    company: {
-      name: 'KeliLabs',
-      repository: 'https://github.com/KeliLabs/my-first-agent',
-      contact: 'contact@kelilabs.com'
-    },
-    endpoints: {
-      chat: '/chat',
-      health: '/health',
-      mcp: '/mcp'
+// MCP endpoint - handles MCP protocol requests (POST, GET, DELETE)
+app.all('/mcp', async (req, res) => {
+  try {
+    // Handle POST requests for client-to-server communication
+    if (req.method === 'POST') {
+      const sessionId = req.headers['mcp-session-id'];
+      let transport;
+
+      if (sessionId && transports[sessionId]) {
+        // Reuse existing transport
+        transport = transports[sessionId];
+      } else if (!sessionId && isInitializeRequest(req.body)) {
+        // New initialization request
+        transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: () => randomUUID(),
+          onsessioninitialized: (sessionId) => {
+            // Store the transport by session ID
+            transports[sessionId] = transport;
+            console.log(`MCP Session initialized: ${sessionId}`);
+          }
+        });
+
+        // Clean up transport when closed
+        transport.onclose = () => {
+          if (transport.sessionId) {
+            delete transports[transport.sessionId];
+            console.log(`MCP Session closed: ${transport.sessionId}`);
+          }
+        };
+
+        // Create and connect the MCP server
+        const server = createMcpServer();
+        await server.connect(transport);
+      } else {
+        // Invalid request
+        res.status(400).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32000,
+            message: 'Bad Request: No valid session ID provided or not an initialization request',
+          },
+          id: null,
+        });
+        return;
+      }
+
+      // Handle the request
+      await transport.handleRequest(req, res, req.body);
     }
-  });
+    // Handle GET requests for server-to-client notifications
+    else if (req.method === 'GET') {
+      const sessionId = req.headers['mcp-session-id'];
+      if (!sessionId || !transports[sessionId]) {
+        res.status(400).send('Invalid or missing session ID');
+        return;
+      }
+      
+      const transport = transports[sessionId];
+      await transport.handleRequest(req, res);
+    }
+    // Handle DELETE requests for session termination
+    else if (req.method === 'DELETE') {
+      const sessionId = req.headers['mcp-session-id'];
+      if (!sessionId || !transports[sessionId]) {
+        res.status(400).send('Invalid or missing session ID');
+        return;
+      }
+      
+      const transport = transports[sessionId];
+      delete transports[sessionId];
+      transport.close();
+      res.status(200).send('Session terminated');
+    }
+    // Method not allowed
+    else {
+      res.status(405).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32000,
+          message: 'Method not allowed',
+        },
+        id: null,
+      });
+    }
+  } catch (error) {
+    console.error('Error handling MCP request:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32603,
+          message: 'Internal server error',
+        },
+        id: null,
+      });
+    }
+  }
 });
 
 app.post('/chat', async (req, res) => {
@@ -186,6 +361,9 @@ app.post('/chat', async (req, res) => {
     }
   }
 });
+
+// Serve static files for CSS and JS (after all API routes)
+app.use(express.static('public'));
 
 
 app.listen(port, '0.0.0.0', () => {
